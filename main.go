@@ -7,11 +7,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/QuoteBot/quotebot/pkg/bot/command"
-
+	
 	"github.com/QuoteBot/quotebot/pkg/bot"
 	"github.com/QuoteBot/quotebot/pkg/config"
+	"github.com/QuoteBot/quotebot/pkg/bot/command"
 
 	"github.com/bwmarrin/discordgo"
 )
