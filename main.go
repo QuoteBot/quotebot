@@ -1,16 +1,27 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/QuoteBot/quotebot/pkg/config"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 func main() {
-	token := "NzEzNzg1NDIwOTE1NDA4OTA2.XslXPQ.xztxaTJqMyWlvgjK8OE6gk2mWRk"
+	tokenfile := flag.String("token", "token", "path to the token file")
+
+	flag.Parse()
+
+	token, err := config.LoadToken(*tokenfile)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
