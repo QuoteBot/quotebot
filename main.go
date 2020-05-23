@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func main() {
-	token := "NzEzNzg1NDIwOTE1NDA4OTA2.XslNOw.kjE5n2FLrn2qfoykhc2okrjD30o"
+	token := "NzEzNzg1NDIwOTE1NDA4OTA2.XslXPQ.xztxaTJqMyWlvgjK8OE6gk2mWRk"
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
@@ -17,8 +18,12 @@ func main() {
 		return
 	}
 
+	h := handlerWithSession{
+		Session: dg,
+	}
+
 	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(messageCreate)
+	dg.AddHandler(h.messageCreate)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -37,7 +42,11 @@ func main() {
 	dg.Close()
 }
 
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+type handlerWithSession struct {
+	Session *discordgo.Session
+}
+
+func (h *handlerWithSession) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
@@ -50,6 +59,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == "shutdown" {
-		s.Close()
+		h.Session.Close()
 	}
 }
