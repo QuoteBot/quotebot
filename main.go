@@ -16,6 +16,7 @@ import (
 
 func main() {
 	tokenFile := flag.String("token", "token", "path to the token file")
+	configFile := flag.String("config", "config.json", "path to the config file (json)")
 
 	flag.Parse()
 
@@ -23,11 +24,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	/*conf*/
+	_, err = bot.LoadConfig(*configFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
-		fmt.Println("Error creating Discord session: ", err)
-		return
+		log.Fatal("Error creating Discord session: ", err)
 	}
 
 	// declare the shutdown channel
@@ -45,8 +52,7 @@ func main() {
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
-		return
+		log.Fatal("error opening connection,", err)
 	}
 
 	// Wait here until CTRL-C or other term signal is received.
@@ -56,4 +62,8 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	dg.Close()
+}
+
+func startBot() {
+
 }
