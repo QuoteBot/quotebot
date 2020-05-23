@@ -14,11 +14,11 @@ import (
 )
 
 func main() {
-	tokenfile := flag.String("token", "token", "path to the token file")
+	tokenFile := flag.String("token", "token", "path to the token file")
 
 	flag.Parse()
 
-	token, err := config.LoadToken(*tokenfile)
+	token, err := config.LoadToken(*tokenFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,8 +29,11 @@ func main() {
 		return
 	}
 
+	sc := make(chan os.Signal)
+
 	h := handlerWithSession{
 		Session: dg,
+		Sc:      sc,
 	}
 
 	// Register the messageCreate func as a callback for MessageCreate events.
@@ -45,7 +48,6 @@ func main() {
 
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
-	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
@@ -55,6 +57,7 @@ func main() {
 
 type handlerWithSession struct {
 	Session *discordgo.Session
+	Sc      chan os.Signal
 }
 
 func (h *handlerWithSession) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -70,6 +73,6 @@ func (h *handlerWithSession) messageCreate(s *discordgo.Session, m *discordgo.Me
 	}
 
 	if m.Content == "shutdown" {
-		h.Session.Close()
+		h.Sc <- syscall.SIGINT
 	}
 }
