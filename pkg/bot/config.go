@@ -7,7 +7,7 @@ import (
 )
 
 type BotConfig struct {
-	OwnersID []string `json:"owners"`
+	OwnersID []string `json:"ownersid"`
 	DataPath string   `json:"datapath"`
 }
 
@@ -37,12 +37,12 @@ func extract(path string) (*BotConfig, error) {
 	if err != nil {
 		return nil, fileNotFound(err)
 	}
-	var conf *BotConfig
-	err = json.Unmarshal(data, conf)
+	var conf BotConfig
+	err = json.Unmarshal(data, &conf)
 	if err != nil {
-
+		return nil, err
 	}
-	return conf, nil
+	return &conf, nil
 }
 
 func saveDefaultConfig(path string) (*BotConfig, error) {

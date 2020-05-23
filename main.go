@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/QuoteBot/quotebot/pkg/bot/command"
+
 	"github.com/QuoteBot/quotebot/pkg/bot"
 	"github.com/QuoteBot/quotebot/pkg/config"
 
@@ -47,6 +49,9 @@ func startBot(token string, conf *bot.BotConfig) {
 	b := bot.Bot{
 		Sc:   sc,
 		Conf: conf,
+		Commands: &bot.BotCommands{
+			MessageCommands: command.MessageCommands(),
+		},
 	}
 
 	// Register the messageReceived func as a callback for MessageCreate events.
