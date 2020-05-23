@@ -24,7 +24,7 @@ func shutdown(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	message := strings.Builder{}
 	message.WriteString(m.Author.Mention())
-	message.WriteString(" you are not allowed to shutdown me")
+	message.WriteString(" you can't do that")
 	s.ChannelMessageSend(m.ChannelID, message.String())
 }
 
