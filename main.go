@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/QuoteBot/quotebot/pkg/bot"
 	"github.com/QuoteBot/quotebot/pkg/config"
 
 	"github.com/bwmarrin/discordgo"
@@ -29,16 +30,17 @@ func main() {
 		return
 	}
 
+	// declare the shutdown channel
 	sc := make(chan os.Signal)
 
-	h := handlerWithSession{
-		Session: dg,
-		Sc:      sc,
+	h := bot.Bot{
+		Sc: sc,
 	}
 
 	// Register the messageReceived func as a callback for MessageCreate events.
-	dg.AddHandler(h.messageReceived)
-	dg.AddHandler(h.guildJoined)
+	dg.AddHandler(h.MessageReceived)
+	dg.AddHandler(h.GuildJoined)
+	dg.AddHandler(h.ReactionAdd)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -50,39 +52,8 @@ func main() {
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
+	<-sc // wait until a Signal is put in the channel
 
 	// Cleanly close down the Discord session.
 	dg.Close()
-}
-
-type handlerWithSession struct {
-	Session *discordgo.Session
-	Sc      chan os.Signal
-}
-
-func (h *handlerWithSession) messageReceived(s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "Pong!")
-	}
-
-	if m.Content == "shutdown" {
-		h.Sc <- syscall.SIGINT
-	}
-}
-
-func (h *handlerWithSession) guildJoined(s *discordgo.Session, event *discordgo.GuildCreate) {
-
-	if event.Guild.Unavailable {
-		return
-	}
-
-	s.ChannelMessageSend(event.Guild.SystemChannelID, "QuoteBot ready")
 }
