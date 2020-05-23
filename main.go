@@ -48,7 +48,7 @@ func startBot(token string, conf *bot.BotConfig) {
 	b := bot.Bot{
 		Sc:   sc,
 		Conf: conf,
-		Commands: &bot.BotCommands{
+		Commands: &bot.BotCommands {
 			MessageCommands: command.MessageCommands(),
 		},
 	}
