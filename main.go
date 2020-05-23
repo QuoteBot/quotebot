@@ -36,8 +36,9 @@ func main() {
 		Sc:      sc,
 	}
 
-	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(h.messageCreate)
+	// Register the messageReceived func as a callback for MessageCreate events.
+	dg.AddHandler(h.messageReceived)
+	dg.AddHandler(h.guildJoined)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -60,7 +61,7 @@ type handlerWithSession struct {
 	Sc      chan os.Signal
 }
 
-func (h *handlerWithSession) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (h *handlerWithSession) messageReceived(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
@@ -75,4 +76,13 @@ func (h *handlerWithSession) messageCreate(s *discordgo.Session, m *discordgo.Me
 	if m.Content == "shutdown" {
 		h.Sc <- syscall.SIGINT
 	}
+}
+
+func (h *handlerWithSession) guildJoined(s *discordgo.Session, event *discordgo.GuildCreate) {
+
+	if event.Guild.Unavailable {
+		return
+	}
+
+	s.ChannelMessageSend(event.Guild.SystemChannelID, "QuoteBot ready")
 }
