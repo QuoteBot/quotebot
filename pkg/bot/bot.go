@@ -14,7 +14,8 @@ const floppy = "💾" //can use "U+1F4BE" but it should be cast in rune then in 
 
 //Bot the state of the bot
 type Bot struct {
-	Sc chan os.Signal
+	Sc   chan os.Signal
+	Conf *BotConfig
 }
 
 //MessageReceived Handle the recieved message

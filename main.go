@@ -25,12 +25,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	/*conf*/
-	_, err = bot.LoadConfig(*configFile)
+	conf, err := bot.LoadConfig(*configFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	startBot(token, conf)
+
+}
+
+func startBot(token string, conf *bot.BotConfig) {
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
@@ -40,14 +44,15 @@ func main() {
 	// declare the shutdown channel
 	sc := make(chan os.Signal)
 
-	h := bot.Bot{
-		Sc: sc,
+	b := bot.Bot{
+		Sc:   sc,
+		Conf: conf,
 	}
 
 	// Register the messageReceived func as a callback for MessageCreate events.
-	dg.AddHandler(h.MessageReceived)
-	dg.AddHandler(h.GuildJoined)
-	dg.AddHandler(h.ReactionAdd)
+	dg.AddHandler(b.MessageReceived)
+	dg.AddHandler(b.GuildJoined)
+	dg.AddHandler(b.ReactionAdd)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -62,8 +67,4 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	dg.Close()
-}
-
-func startBot() {
-
 }
