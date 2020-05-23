@@ -6,7 +6,6 @@ import (
 
 type BotCommands struct {
 	MessageCommands map[string]MessageCommand
-	//GuildJoinedCommands
 	//ReactionCommands
 }
 
