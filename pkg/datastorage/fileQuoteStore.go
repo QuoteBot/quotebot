@@ -166,7 +166,7 @@ func (qs *fileQuoteStore) Save(quote *Quote) error {
 	return qs.saveUserQuotes(userQuotes)
 }
 
-func (qs *fileQuoteStore) Forget(quoteID string, userID string, guildID string) error {
+func (qs *fileQuoteStore) Delete(quoteID string, userID string, guildID string) error {
 	mutex := qs.aquireWrite(guildID)
 	defer mutex.Unlock()
 

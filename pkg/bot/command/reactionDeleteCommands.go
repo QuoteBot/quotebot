@@ -26,7 +26,7 @@ func forgetQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionR
 		}
 	}
 
-	if b.QuoteStore.Forget(m.MessageID, message.Author.ID, m.GuildID) != nil {
+	if b.QuoteStore.Delete(m.MessageID, message.Author.ID, m.GuildID) != nil {
 		log.Println("error while forgeting quote", err)
 		return
 	}
