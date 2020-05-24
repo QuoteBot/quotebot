@@ -13,7 +13,7 @@ type BotConfig struct {
 
 type fileNotFound error
 
-func LoadConfig(path string) (*BotConfig, error) {
+func loadConfig(path string) (*BotConfig, error) {
 	conf, err := extract(path)
 	if err != nil {
 		if e, ok := err.(fileNotFound); ok {

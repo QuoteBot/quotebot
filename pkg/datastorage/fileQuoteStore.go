@@ -106,13 +106,13 @@ func (qs *fileQuoteStore) newGuild(guildID string) {
 	}
 }
 
-func (qs *fileQuoteStore) aquireWrite(guildId string) *sync.RWMutex {
+func (qs *fileQuoteStore) aquireWrite(guildID string) *sync.RWMutex {
 	for { //active wait until mutex is created and aquire
-		if mutex, ok := qs.guildMutexes[guildId]; ok {
+		if mutex, ok := qs.guildMutexes[guildID]; ok {
 			mutex.Lock()
 			return &mutex
 		}
-		qs.newGuild(guildId)
+		qs.newGuild(guildID)
 	}
 }
 
