@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func MessageCommands() map[string]bot.MessageCommand {
+func messageCommands() map[string]bot.MessageCommand {
 	return map[string]bot.MessageCommand{
 		"shutdown": shutdown,
 		"ping":     ping,

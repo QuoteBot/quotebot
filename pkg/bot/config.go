@@ -6,14 +6,15 @@ import (
 	"log"
 )
 
-type BotConfig struct {
+//Config config for the bot
+type Config struct {
 	OwnersID []string `json:"ownersid"`
 	DataPath string   `json:"datapath"`
 }
 
 type fileNotFound error
 
-func LoadConfig(path string) (*BotConfig, error) {
+func loadConfig(path string) (*Config, error) {
 	conf, err := extract(path)
 	if err != nil {
 		if e, ok := err.(fileNotFound); ok {
@@ -32,12 +33,12 @@ func LoadConfig(path string) (*BotConfig, error) {
 	return conf, nil
 }
 
-func extract(path string) (*BotConfig, error) {
+func extract(path string) (*Config, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, fileNotFound(err)
 	}
-	var conf BotConfig
+	var conf Config
 	err = json.Unmarshal(data, &conf)
 	if err != nil {
 		return nil, err
@@ -45,8 +46,8 @@ func extract(path string) (*BotConfig, error) {
 	return &conf, nil
 }
 
-func saveDefaultConfig(path string) (*BotConfig, error) {
-	defaultConf := &BotConfig{
+func saveDefaultConfig(path string) (*Config, error) {
+	defaultConf := &Config{
 		OwnersID: []string{},
 		DataPath: "data",
 	}
