@@ -20,6 +20,13 @@ func saveQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd
 		log.Println("error while geting message", err)
 		return
 	}
+
+	for _, r := range message.Reactions {
+		if r.Emoji.Name == "💾" {
+			return
+		}
+	}
+
 	timestamp, err := message.Timestamp.Parse()
 	if err != nil {
 		log.Println("error while parsing timestamp in saveQuote", err)
