@@ -7,7 +7,7 @@ import (
 //BotCommands commands struct containing the maps of executable commands
 type BotCommands struct {
 	MessageCommands        map[string]MessageCommand
-	ReractionAddCommands   map[string]ReractionAddCommand
+	ReactionAddCommands    map[string]ReractionAddCommand
 	ReactionRemoveCommands map[string]ReractionRemoveCommand
 }
 

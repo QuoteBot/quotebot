@@ -1,11 +1,9 @@
 package datastorage
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"log"
 	"os"
 	"sync"
 	"time"
@@ -14,19 +12,6 @@ import (
 type saveableQuote struct {
 	Timestamp time.Time `json:"timestamp"`
 	Content   string    `json:"content"`
-}
-
-func (quote *saveableQuote) hash() string {
-	data, err := json.Marshal(quote) //not efficient
-	if err != nil {
-		log.Fatal("error while computing hash for", quote, err)
-	}
-	h := sha256.New()
-	_, err = h.Write(data)
-	if err != nil {
-		log.Fatal("error while computing hash for", quote, err)
-	}
-	return string(h.Sum(nil))
 }
 
 type userQuotes struct {
@@ -181,16 +166,16 @@ func (qs *fileQuoteStore) Save(quote *Quote) error {
 	return qs.saveUserQuotes(userQuotes)
 }
 
-func (qs *fileQuoteStore) Forget(quote *Quote) error {
-	mutex := qs.aquireWrite(quote.GuildID)
+func (qs *fileQuoteStore) Forget(quoteID string, userID string, guildID string) error {
+	mutex := qs.aquireWrite(guildID)
 	defer mutex.Unlock()
 
-	userQuotes, err := qs.getUserQuotes(quote.UserID, quote.GuildID)
+	userQuotes, err := qs.getUserQuotes(userID, guildID)
 	if err != nil {
 		return err
 	}
 
-	delete(userQuotes.Quotes, quote.QuoteId)
+	delete(userQuotes.Quotes, quoteID)
 
 	return qs.saveUserQuotes(userQuotes)
 }

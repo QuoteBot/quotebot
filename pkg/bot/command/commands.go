@@ -8,7 +8,7 @@ import (
 func AllBotCommands() *bot.BotCommands {
 	return &bot.BotCommands{
 		MessageCommands:        messageCommands(),
-		ReractionAddCommands:   reactionAddCommands(),
+		ReactionAddCommands:    reactionAddCommands(),
 		ReactionRemoveCommands: reactionDeleteCommands(),
 	}
 }
