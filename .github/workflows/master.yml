@@ -35,16 +35,28 @@ jobs:
     - name: build
       run: |
         echo build for linux/amd64
-        GOOS=linux GOARCH=amd64 go build -o bin/quotebot_${GOOS}_${GOARCH} . 
+        GOOS=linux GOARCH=amd64 go build -o bin/quotebot . 
         echo build for linux/arm
-        GOOS=linux GOARCH=arm go build -o bin/quotebot_${GOOS}_${GOARCH} .
+        GOOS=linux GOARCH=arm go build -o bin/quotebot_arm .
         echo build for windows/amd64
-        GOOS=windows GOARCH=amd64 go build -o bin/quotebot_${GOOS}_${GOARCH}.exe .
+        GOOS=windows GOARCH=amd64 go build -o bin/quotebot.exe .
         
-    - name: upload artifact
+    - name: upload linux
       uses: actions/upload-artifact@v2
       with:
-        # Artifact name
-        name: binaries
         # A file, directory or wildcard pattern that describes what to upload
-        path: bin/*
+        path: bin/quotebot
+        
+    - name: upload linux arm
+      uses: actions/upload-artifact@v2
+      with:
+        # A file, directory or wildcard pattern that describes what to upload
+        path: bin/quotebot_arm
+            
+    - name: upload windows
+      uses: actions/upload-artifact@v2
+      with:
+        # A file, directory or wildcard pattern that describes what to upload
+        path: bin/quotebot.exe
+
+
