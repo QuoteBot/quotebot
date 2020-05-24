@@ -1,9 +1,11 @@
 package datastorage
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -14,10 +16,23 @@ type saveableQuote struct {
 	Content   string    `json:"content"`
 }
 
+func (quote *saveableQuote) hash() string {
+	data, err := json.Marshal(quote) //not efficient
+	if err != nil {
+		log.Fatal("error while computing hash for", quote, err)
+	}
+	h := sha256.New()
+	_, err = h.Write(data)
+	if err != nil {
+		log.Fatal("error while computing hash for", quote, err)
+	}
+	return string(h.Sum(nil))
+}
+
 type userQuotes struct {
-	UserID  string          `json:"userID"`
-	GuildID string          `json:"guildID"`
-	Quotes  []saveableQuote `json:"quotes"`
+	UserID  string                   `json:"userID"`
+	GuildID string                   `json:"guildID"`
+	Quotes  map[string]saveableQuote `json:"quotes"` //hash map / hashset
 }
 
 const dirPerm = 0777
@@ -123,6 +138,7 @@ func (qs *fileQuoteStore) getUserQuotes(userID string, guildID string) (*userQuo
 	if err != nil { //return default userQuotes
 		res.GuildID = guildID
 		res.UserID = userID
+		res.Quotes = map[string]saveableQuote{}
 	} else {
 		err = json.Unmarshal(data, &res)
 		if err != nil {
@@ -159,7 +175,7 @@ func (qs *fileQuoteStore) Save(quote *Quote) error {
 		Timestamp: quote.Timestamp,
 		Content:   quote.Content,
 	}
-	userQuotes.Quotes = append(userQuotes.Quotes, saveable)
+	userQuotes.Quotes[quote.QuoteId] = saveable
 
 	//Save modified quotes
 	return qs.saveUserQuotes(userQuotes)
@@ -168,5 +184,13 @@ func (qs *fileQuoteStore) Save(quote *Quote) error {
 func (qs *fileQuoteStore) Forget(quote *Quote) error {
 	mutex := qs.aquireWrite(quote.GuildID)
 	defer mutex.Unlock()
-	return nil
+
+	userQuotes, err := qs.getUserQuotes(quote.UserID, quote.GuildID)
+	if err != nil {
+		return err
+	}
+
+	delete(userQuotes.Quotes, quote.QuoteId)
+
+	return qs.saveUserQuotes(userQuotes)
 }

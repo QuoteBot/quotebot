@@ -26,6 +26,7 @@ func saveQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd
 		return
 	}
 	quote := datastorage.Quote{
+		QuoteId:   message.ID,
 		GuildID:   m.GuildID,
 		UserID:    message.Author.ID,
 		Timestamp: timestamp,

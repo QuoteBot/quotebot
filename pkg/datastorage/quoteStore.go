@@ -5,6 +5,7 @@ import (
 )
 
 type Quote struct {
+	QuoteId   string    `json:"quoteID"`
 	UserID    string    `json:"userID"`
 	GuildID   string    `json:"guildId"`
 	Timestamp time.Time `json:"timestamp"`

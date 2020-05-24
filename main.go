@@ -49,6 +49,7 @@ func startBot(token string, conf string) {
 	dg.AddHandler(b.MessageReceived)
 	dg.AddHandler(b.GuildJoined)
 	dg.AddHandler(b.ReactionAdd)
+	dg.AddHandler(b.ReactionDelete)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
