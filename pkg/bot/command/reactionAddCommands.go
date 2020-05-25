@@ -21,8 +21,13 @@ func saveQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd
 		return
 	}
 
+	count := 0
 	for _, r := range message.Reactions {
+
 		if r.Emoji.Name == "💾" {
+			count++
+		}
+		if count >= 2 {
 			return
 		}
 	}
