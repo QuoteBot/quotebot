@@ -8,8 +8,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func reactionAddCommands() map[string]bot.ReractionAddCommand {
-	return map[string]bot.ReractionAddCommand{
+func reactionAddCommands() map[string]bot.ReactionAddCommand {
+	return map[string]bot.ReactionAddCommand{
 		"💾": saveQuote,
 	}
 }

@@ -10,8 +10,9 @@ import (
 
 func messageCommands() map[string]bot.MessageCommand {
 	return map[string]bot.MessageCommand{
-		"shutdown": shutdown,
-		"ping":     ping,
+		"shutdown":  shutdown,
+		"ping":      ping,
+		"quotebook": quotebook,
 	}
 }
 
@@ -30,4 +31,9 @@ func shutdown(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func ping(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	s.ChannelMessageSend(m.ChannelID, "Pong!")
+}
+
+func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
+	b.QuoteStore.GetQuotesFromUser(m.Author.ID, m.GuildID)
+	s.ChannelMessageSend(m.ChannelID, "quotebook")
 }
