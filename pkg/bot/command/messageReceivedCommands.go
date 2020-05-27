@@ -1,11 +1,11 @@
 package command
 
 import (
-	"strings"
-	"syscall"
-
 	"github.com/QuoteBot/quotebot/pkg/bot"
 	"github.com/bwmarrin/discordgo"
+	"log"
+	"strings"
+	"syscall"
 )
 
 func messageCommands() map[string]bot.MessageCommand {
@@ -34,6 +34,35 @@ func ping(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
-	b.QuoteStore.GetQuotesFromUser(m.Author.ID, m.GuildID)
-	s.ChannelMessageSend(m.ChannelID, "quotebook")
+	userQuotes, err := b.QuoteStore.GetQuotesFromUser(m.Author.ID, m.GuildID)
+	if err != nil {
+		log.Println("error while retrieving user quotes", err)
+		return
+	}
+
+	embed := &discordgo.MessageEmbed{
+		Author:      &discordgo.MessageEmbedAuthor{},
+		Color:       0xfafafa, // White
+		Description: "Use the reactions to navigate between pages",
+		Image: &discordgo.MessageEmbedImage {
+			URL: "https://cdn.discordapp.com/avatars/119249192806776836/cc32c5c3ee602e1fe252f9f595f9010e.jpg?size=2048",
+		},
+		Thumbnail: &discordgo.MessageEmbedThumbnail {
+			URL: m.Author.AvatarURL(""),
+		},
+		Title:     "Quote book - the best of " + m.Author.String(),
+		Footer: &discordgo.MessageEmbedFooter {
+			Text:  "Requested by " + m.Author.String(),
+		},
+	}
+
+	for _, q := range userQuotes.Quotes {
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField {
+			Name:  q.Timestamp.Format("2006-01-02"),
+			Value: q.Content,
+		})
+	}
+
+	s.ChannelMessageSendEmbed(m.ChannelID, embed)
+
 }
