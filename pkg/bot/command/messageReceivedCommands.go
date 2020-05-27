@@ -26,43 +26,66 @@ func shutdown(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	message := strings.Builder{}
 	message.WriteString(m.Author.Mention())
 	message.WriteString(" you can't do that")
-	s.ChannelMessageSend(m.ChannelID, message.String())
+	_, err := s.ChannelMessageSend(m.ChannelID, message.String())
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
 }
 
-func ping(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
-	s.ChannelMessageSend(m.ChannelID, "Pong!")
+func ping(_ *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
+	_, err := s.ChannelMessageSend(m.ChannelID, "Pong!")
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
 }
 
 func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
-	userQuotes, err := b.QuoteStore.GetQuotesFromUser(m.Author.ID, m.GuildID)
+	mentionedUser := m.Mentions[0]
+	userQuotes, err := b.QuoteStore.GetQuotesFromUser(mentionedUser.ID, m.GuildID)
 	if err != nil {
 		log.Println("error while retrieving user quotes", err)
 		return
 	}
 
 	embed := &discordgo.MessageEmbed{
-		Author:      &discordgo.MessageEmbedAuthor{},
+		Author: &discordgo.MessageEmbedAuthor{
+			Name:    "Quote Book of " + mentionedUser.String(),
+			IconURL: s.State.User.AvatarURL("128"),
+		},
 		Color:       0xfafafa, // White
 		Description: "Use the reactions to navigate between pages",
-		Image: &discordgo.MessageEmbedImage {
-			URL: "https://cdn.discordapp.com/avatars/119249192806776836/cc32c5c3ee602e1fe252f9f595f9010e.jpg?size=2048",
+		Thumbnail: &discordgo.MessageEmbedThumbnail{
+			URL: mentionedUser.AvatarURL("64"),
 		},
-		Thumbnail: &discordgo.MessageEmbedThumbnail {
-			URL: m.Author.AvatarURL(""),
-		},
-		Title:     "Quote book - the best of " + m.Author.String(),
-		Footer: &discordgo.MessageEmbedFooter {
-			Text:  "Requested by " + m.Author.String(),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: "Requested by " + m.Author.String(),
 		},
 	}
 
 	for _, q := range userQuotes.Quotes {
-		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField {
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 			Name:  q.Timestamp.Format("2006-01-02"),
 			Value: q.Content,
 		})
 	}
 
-	s.ChannelMessageSendEmbed(m.ChannelID, embed)
+	message, err := s.ChannelMessageSendEmbed(m.ChannelID, embed)
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
 
+	err = s.MessageReactionAdd(m.ChannelID, message.ID, "⬅️")
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
+
+	err = s.MessageReactionAdd(m.ChannelID, message.ID, "➡️")
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
 }

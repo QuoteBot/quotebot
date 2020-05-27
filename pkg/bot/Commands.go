@@ -4,8 +4,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-//BotCommands commands struct containing the maps of executable commands
-type BotCommands struct {
+//Commands commands struct containing the maps of executable commands
+type Commands struct {
 	MessageCommands        map[string]MessageCommand
 	ReactionAddCommands    map[string]ReactionAddCommand
 	ReactionRemoveCommands map[string]ReactionRemoveCommand
