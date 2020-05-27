@@ -7,8 +7,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func reactionDeleteCommands() map[string]bot.ReractionRemoveCommand {
-	return map[string]bot.ReractionRemoveCommand{
+func reactionDeleteCommands() map[string]bot.ReactionRemoveCommand {
+	return map[string]bot.ReactionRemoveCommand{
 		"💾": forgetQuote,
 	}
 }

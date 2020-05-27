@@ -5,8 +5,8 @@ import (
 )
 
 //AllBotCommands return the bot.Commands object containing all possible commands
-func AllBotCommands() *bot.BotCommands {
-	return &bot.BotCommands{
+func AllBotCommands() *bot.Commands {
+	return &bot.Commands{
 		MessageCommands:        messageCommands(),
 		ReactionAddCommands:    reactionAddCommands(),
 		ReactionRemoveCommands: reactionDeleteCommands(),

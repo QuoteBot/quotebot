@@ -1,17 +1,18 @@
 package command
 
 import (
-	"strings"
-	"syscall"
-
 	"github.com/QuoteBot/quotebot/pkg/bot"
 	"github.com/bwmarrin/discordgo"
+	"log"
+	"strings"
+	"syscall"
 )
 
 func messageCommands() map[string]bot.MessageCommand {
 	return map[string]bot.MessageCommand{
-		"shutdown": shutdown,
-		"ping":     ping,
+		"shutdown":  shutdown,
+		"ping":      ping,
+		"quotebook": quotebook,
 	}
 }
 
@@ -25,9 +26,66 @@ func shutdown(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	message := strings.Builder{}
 	message.WriteString(m.Author.Mention())
 	message.WriteString(" you can't do that")
-	s.ChannelMessageSend(m.ChannelID, message.String())
+	_, err := s.ChannelMessageSend(m.ChannelID, message.String())
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
 }
 
-func ping(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
-	s.ChannelMessageSend(m.ChannelID, "Pong!")
+func ping(_ *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
+	_, err := s.ChannelMessageSend(m.ChannelID, "Pong!")
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
+}
+
+func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
+	mentionedUser := m.Mentions[0]
+	userQuotes, err := b.QuoteStore.GetQuotesFromUser(mentionedUser.ID, m.GuildID)
+	if err != nil {
+		log.Println("error while retrieving user quotes", err)
+		return
+	}
+
+	embed := &discordgo.MessageEmbed{
+		Author: &discordgo.MessageEmbedAuthor{
+			Name:    "Quote Book of " + mentionedUser.String(),
+			IconURL: s.State.User.AvatarURL("128"),
+		},
+		Color:       0xfafafa, // White
+		Description: "Use the reactions to navigate between pages",
+		Thumbnail: &discordgo.MessageEmbedThumbnail{
+			URL: mentionedUser.AvatarURL("64"),
+		},
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: "Requested by " + m.Author.String(),
+		},
+	}
+
+	for _, q := range userQuotes.Quotes {
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:  q.Timestamp.Format("2006-01-02"),
+			Value: q.Content,
+		})
+	}
+
+	message, err := s.ChannelMessageSendEmbed(m.ChannelID, embed)
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
+
+	err = s.MessageReactionAdd(m.ChannelID, message.ID, "⬅️")
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
+
+	err = s.MessageReactionAdd(m.ChannelID, message.ID, "➡️")
+	if err != nil {
+		log.Println("error while sending embed", err)
+		return
+	}
 }

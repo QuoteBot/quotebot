@@ -9,15 +9,15 @@ import (
 	"time"
 )
 
-type saveableQuote struct {
+type savableQuote struct {
 	Timestamp time.Time `json:"timestamp"`
 	Content   string    `json:"content"`
 }
 
 type userQuotes struct {
-	UserID  string                   `json:"userID"`
-	GuildID string                   `json:"guildID"`
-	Quotes  map[string]saveableQuote `json:"quotes"` //hash map / hashset
+	UserID  string                  `json:"userID"`
+	GuildID string                  `json:"guildID"`
+	Quotes  map[string]savableQuote `json:"quotes"` //hash map / hashset
 }
 
 const dirPerm = 0777
@@ -31,7 +31,7 @@ const fileExtension = ".json"
 type fileQuoteStore struct {
 	rootPath     string
 	guildMutexes map[string]sync.RWMutex
-	storMutex    sync.Mutex
+	storeMutex   sync.Mutex
 }
 
 //constructor
@@ -69,14 +69,14 @@ func newfileQuoteStore(uri string) (*fileQuoteStore, error) {
 	return &fileQuoteStore{
 		rootPath:     uri,
 		guildMutexes: mutexes,
-		storMutex:    sync.Mutex{},
+		storeMutex:   sync.Mutex{},
 	}, nil
 }
 
 //helper functions
 func feedMutexes(dir *os.File) (map[string]sync.RWMutex, error) {
 
-	infos, err := dir.Readdir(0) //read all infos in the directory in one time
+	infos, err := dir.Readdir(0) //read all infos in the directory at once
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func feedMutexes(dir *os.File) (map[string]sync.RWMutex, error) {
 	dirs := make([]string, 0, len(infos))
 
 	for _, info := range infos {
-		if !info.IsDir() {
+		if info.IsDir() {
 			dirs = append(dirs, info.Name())
 		}
 	}
@@ -98,8 +98,8 @@ func feedMutexes(dir *os.File) (map[string]sync.RWMutex, error) {
 }
 
 func (qs *fileQuoteStore) newGuild(guildID string) {
-	qs.storMutex.Lock()
-	defer qs.storMutex.Unlock() // unlock mutex at the end of the method
+	qs.storeMutex.Lock()
+	defer qs.storeMutex.Unlock() // unlock mutex at the end of the method
 	if _, ok := qs.guildMutexes[guildID]; !ok {
 		os.Mkdir(qs.rootPath+string(os.PathSeparator)+guildID, dirPerm)
 		qs.guildMutexes[guildID] = sync.RWMutex{}
@@ -116,18 +116,26 @@ func (qs *fileQuoteStore) aquireWrite(guildID string) *sync.RWMutex {
 	}
 }
 
+func (qs *fileQuoteStore) aquireRead(guildID string) *sync.RWMutex {
+	if mutex, ok := qs.guildMutexes[guildID]; ok {
+		mutex.RLock()
+		return &mutex
+	}
+	return nil
+}
+
 func (qs *fileQuoteStore) getUserQuotes(userID string, guildID string) (*userQuotes, error) {
 	var res userQuotes
-	fullpath := qs.rootPath + string(os.PathSeparator) + guildID + string(os.PathSeparator) + userID + fileExtension
-	data, err := ioutil.ReadFile(fullpath)
+	filepath := qs.rootPath + string(os.PathSeparator) + guildID + string(os.PathSeparator) + userID + fileExtension
+	data, err := ioutil.ReadFile(filepath)
 	if err != nil { //return default userQuotes
 		res.GuildID = guildID
 		res.UserID = userID
-		res.Quotes = map[string]saveableQuote{}
+		res.Quotes = map[string]savableQuote{}
 	} else {
 		err = json.Unmarshal(data, &res)
 		if err != nil {
-			return nil, errors.New("malformed file " + fullpath)
+			return nil, errors.New("malformed file " + filepath)
 		}
 	}
 	return &res, nil
@@ -156,11 +164,11 @@ func (qs *fileQuoteStore) Save(quote *Quote) error {
 	}
 
 	//update quotes
-	saveable := saveableQuote{
+	savable := savableQuote{
 		Timestamp: quote.Timestamp,
 		Content:   quote.Content,
 	}
-	userQuotes.Quotes[quote.QuoteId] = saveable
+	userQuotes.Quotes[quote.QuoteId] = savable
 
 	//Save modified quotes
 	return qs.saveUserQuotes(userQuotes)
@@ -178,4 +186,16 @@ func (qs *fileQuoteStore) Delete(quoteID string, userID string, guildID string) 
 	delete(userQuotes.Quotes, quoteID)
 
 	return qs.saveUserQuotes(userQuotes)
+}
+
+func (qs *fileQuoteStore) GetQuotesFromUser(userID string, guildID string) (*userQuotes, error) {
+	mutex := qs.aquireRead(guildID)
+	defer mutex.RUnlock()
+
+	userQuotes, err := qs.getUserQuotes(userID, guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	return userQuotes, nil
 }
