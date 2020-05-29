@@ -10,6 +10,7 @@ type Quote struct {
 	GuildID   string    `json:"guildId"`
 	Timestamp time.Time `json:"timestamp"`
 	Content   string    `json:"content"`
+	Score     int       `json:"score"`
 }
 
 type QuoteStore interface {

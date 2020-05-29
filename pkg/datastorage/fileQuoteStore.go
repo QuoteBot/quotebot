@@ -12,6 +12,7 @@ import (
 type saveableQuote struct {
 	Timestamp time.Time `json:"timestamp"`
 	Content   string    `json:"content"`
+	Score     int       `json:"score"`
 }
 
 type userQuotes struct {
