@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/QuoteBot/quotebot/pkg/datastorage"
+	"github.com/bwmarrin/discordgo"
 )
 
 type State struct {
@@ -12,9 +13,11 @@ type State struct {
 	maxPage     int
 	lastPageLen int
 	lastSeen    time.Time
+	author      *discordgo.User
+	mentioned   *discordgo.User
 }
 
-func NewState(quotes []datastorage.Quote) *State {
+func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *discordgo.User) *State {
 
 	l := len(quotes)
 	maxPage := l / pageQuotes
@@ -31,6 +34,8 @@ func NewState(quotes []datastorage.Quote) *State {
 		maxPage:     maxPage,
 		lastPageLen: lastlen,
 		lastSeen:    time.Now(),
+		author:      author,
+		mentioned:   mentioned,
 	}
 }
 
@@ -44,9 +49,13 @@ func (state *State) GetCurrentPage() *Page {
 		endPosition = startPosition + state.lastPageLen
 	}
 
+	state.lastSeen = time.Now()
+
 	return &Page{
-		Values:  state.quotes[startPosition:endPosition],
-		HasNext: !islast,
-		HasPrev: !isfirst,
+		Values:    state.quotes[startPosition:endPosition],
+		HasNext:   !islast,
+		HasPrev:   !isfirst,
+		Author:    state.author,
+		Mentioned: state.mentioned,
 	}
 }

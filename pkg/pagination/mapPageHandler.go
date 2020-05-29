@@ -2,6 +2,7 @@ package pagination
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -24,11 +25,16 @@ type action struct {
 	id         string
 }
 
+type res struct {
+	page *Page
+	err  error
+}
+
 type mapPageHandler struct {
 	states     map[string]*State
 	context    context.Context
 	actionChan chan action
-	resChan    chan *Page
+	resChan    chan *res
 }
 
 func newMapPageHandler() PageHandler /*context.Context*/ {
@@ -38,7 +44,7 @@ func newMapPageHandler() PageHandler /*context.Context*/ {
 		states:     make(map[string]*State),
 		context:    context.Background(),
 		actionChan: make(chan action),
-		resChan:    make(chan *Page),
+		resChan:    make(chan *res),
 	}
 	go ph.behavior()
 	return ph
@@ -62,12 +68,17 @@ func (pageHandler *mapPageHandler) _gc() {
 func (pageHandler *mapPageHandler) _add(id string, state *State) {
 	_, ok := pageHandler.states[id]
 	if ok {
-		pageHandler.resChan <- nil
+		pageHandler.resChan <- &res{
+			page: nil,
+			err:  errors.New("page already exists"),
+		}
 		return
 	}
 	pageHandler.states[id] = state
-	res := state.GetCurrentPage()
-	pageHandler.resChan <- res
+	pageHandler.resChan <- &res{
+		page: state.GetCurrentPage(),
+		err:  nil,
+	}
 }
 
 //inject nothing in res
@@ -79,40 +90,54 @@ func (pageHandler *mapPageHandler) _remove(id string) {
 func (pageHandler *mapPageHandler) _next(id string) {
 	state, ok := pageHandler.states[id]
 	if !ok {
-		pageHandler.resChan <- nil
+		pageHandler.resChan <- &res{
+			page: nil,
+			err:  errors.New("page not found"),
+		}
 		return
 	}
-	if state.curPage > state.maxPage {
-		state.curPage--
+	if state.curPage < state.maxPage {
+		state.curPage++
 	}
-	res := state.GetCurrentPage()
-	pageHandler.resChan <- res
+	pageHandler.resChan <- &res{
+		page: state.GetCurrentPage(),
+		err:  nil,
+	}
 }
 
 //inject curent page as res after decrementing the page number if has previous else return nil
 func (pageHandler *mapPageHandler) _prev(id string) {
 	state, ok := pageHandler.states[id]
 	if !ok {
-		pageHandler.resChan <- nil
+		pageHandler.resChan <- &res{
+			page: nil,
+			err:  errors.New("page not found"),
+		}
 		return
 	}
 	if state.curPage > 0 {
 		state.curPage--
 	}
-	res := state.GetCurrentPage()
-	pageHandler.resChan <- res
-
+	pageHandler.resChan <- &res{
+		page: state.GetCurrentPage(),
+		err:  nil,
+	}
 }
 
 //inject curent page
 func (pageHandler *mapPageHandler) _cur(id string) {
 	state, ok := pageHandler.states[id]
 	if !ok {
-		pageHandler.resChan <- nil
+		pageHandler.resChan <- &res{
+			page: nil,
+			err:  errors.New("page not found"),
+		}
 		return
 	}
-	res := state.GetCurrentPage()
-	pageHandler.resChan <- res
+	pageHandler.resChan <- &res{
+		page: state.GetCurrentPage(),
+		err:  nil,
+	}
 }
 
 func (pageHandler *mapPageHandler) behavior() {
@@ -143,21 +168,25 @@ func (pageHandler *mapPageHandler) behavior() {
 	}
 }
 
-func (pageHandler *mapPageHandler) GetCurrentPage(embedID string) *Page {
+func (pageHandler *mapPageHandler) GetCurrentPage(embedID string) (*Page, error) {
 	pageHandler.actionChan <- action{id: embedID, toAdd: nil, typeAction: getCur}
-	return <-pageHandler.resChan
+	r := <-pageHandler.resChan
+	return r.page, r.err
 }
-func (pageHandler *mapPageHandler) GetNextPage(embedID string) *Page {
+func (pageHandler *mapPageHandler) GetNextPage(embedID string) (*Page, error) {
 	pageHandler.actionChan <- action{id: embedID, toAdd: nil, typeAction: getNext}
-	return <-pageHandler.resChan
+	r := <-pageHandler.resChan
+	return r.page, r.err
 }
-func (pageHandler *mapPageHandler) GetPreviousPage(embedID string) *Page {
+func (pageHandler *mapPageHandler) GetPreviousPage(embedID string) (*Page, error) {
 	pageHandler.actionChan <- action{id: embedID, toAdd: nil, typeAction: getPrev}
-	return <-pageHandler.resChan
+	r := <-pageHandler.resChan
+	return r.page, r.err
 }
-func (pageHandler *mapPageHandler) Add(embedID string, state *State) *Page {
+func (pageHandler *mapPageHandler) Add(embedID string, state *State) (*Page, error) {
 	pageHandler.actionChan <- action{id: embedID, toAdd: state, typeAction: add}
-	return <-pageHandler.resChan
+	r := <-pageHandler.resChan
+	return r.page, r.err
 }
 func (pageHandler *mapPageHandler) Delete(embedID string) {
 	pageHandler.actionChan <- action{id: embedID, toAdd: nil, typeAction: remove}

@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	"github.com/QuoteBot/quotebot/pkg/bot"
+	"github.com/QuoteBot/quotebot/pkg/bot/command/utils"
 	"github.com/QuoteBot/quotebot/pkg/pagination"
 	"github.com/bwmarrin/discordgo"
 )
@@ -44,6 +45,10 @@ func ping(_ *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
+	if len(m.Mentions) < 1 {
+		//Todo notify user how to use it
+		return
+	}
 	mentionedUser := m.Mentions[0]
 	quotes, err := b.QuoteStore.GetQuotesFromUser(mentionedUser.ID, m.GuildID)
 	if err != nil {
@@ -51,34 +56,12 @@ func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	embed := &discordgo.MessageEmbed{
-		Author: &discordgo.MessageEmbedAuthor{
-			Name:    "Quote Book of " + mentionedUser.String(),
-			IconURL: s.State.User.AvatarURL("128"),
-		},
-		Color:       0xfafafa, // White
-		Description: "Use the reactions to navigate between pages",
-		Thumbnail: &discordgo.MessageEmbedThumbnail{
-			URL: mentionedUser.AvatarURL("64"),
-		},
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: "Requested by " + m.Author.String(),
-		},
-	}
-
 	//transform quotes in state
-	state := pagination.NewState(quotes)
+	state := pagination.NewState(quotes, m.Author, mentionedUser)
 	//get the page
 	page := state.GetCurrentPage()
 
-	for _, q := range page.Values {
-		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-			Name:  q.Timestamp.Format("2006-01-02"),
-			Value: q.Content,
-		})
-	}
-
-	message, err := s.ChannelMessageSendEmbed(m.ChannelID, embed)
+	message, err := s.ChannelMessageSendEmbed(m.ChannelID, utils.EmbeddedQuotePageFactory(page, s))
 	if err != nil {
 		log.Println("error while sending embed", err)
 		return
@@ -87,19 +70,6 @@ func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	//register the state into the page manager
 	b.PageHandler.Add(message.ID, state)
 
-	if page.HasPrev {
-		err = s.MessageReactionAdd(m.ChannelID, message.ID, "⬅️")
-		if err != nil {
-			log.Println("error while sending embed", err)
-			return
-		}
-	}
-
-	if page.HasNext {
-		err = s.MessageReactionAdd(m.ChannelID, message.ID, "➡️")
-		if err != nil {
-			log.Println("error while sending embed", err)
-			return
-		}
-	}
+	//then when it's aviable react to the message
+	utils.ReactToPage(page, s, m.ChannelID, message.ID, emojiToReact())
 }
