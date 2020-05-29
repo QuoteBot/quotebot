@@ -1,11 +1,13 @@
 package command
 
 import (
-	"github.com/QuoteBot/quotebot/pkg/bot"
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"strings"
 	"syscall"
+
+	"github.com/QuoteBot/quotebot/pkg/bot"
+	"github.com/QuoteBot/quotebot/pkg/pagination"
+	"github.com/bwmarrin/discordgo"
 )
 
 func messageCommands() map[string]bot.MessageCommand {
@@ -43,7 +45,7 @@ func ping(_ *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	mentionedUser := m.Mentions[0]
-	userQuotes, err := b.QuoteStore.GetQuotesFromUser(mentionedUser.ID, m.GuildID)
+	quotes, err := b.QuoteStore.GetQuotesFromUser(mentionedUser.ID, m.GuildID)
 	if err != nil {
 		log.Println("error while retrieving user quotes", err)
 		return
@@ -64,7 +66,12 @@ func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 		},
 	}
 
-	for _, q := range userQuotes.Quotes {
+	//transform quotes in state
+	state := pagination.NewState(quotes)
+	//get the page
+	page := state.GetCurrentPage()
+
+	for _, q := range page.Values {
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 			Name:  q.Timestamp.Format("2006-01-02"),
 			Value: q.Content,
@@ -77,15 +84,22 @@ func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	err = s.MessageReactionAdd(m.ChannelID, message.ID, "⬅️")
-	if err != nil {
-		log.Println("error while sending embed", err)
-		return
+	//register the state into the page manager
+	b.PageHandler.Add(message.ID, state)
+
+	if page.HasPrev {
+		err = s.MessageReactionAdd(m.ChannelID, message.ID, "⬅️")
+		if err != nil {
+			log.Println("error while sending embed", err)
+			return
+		}
 	}
 
-	err = s.MessageReactionAdd(m.ChannelID, message.ID, "➡️")
-	if err != nil {
-		log.Println("error while sending embed", err)
-		return
+	if page.HasNext {
+		err = s.MessageReactionAdd(m.ChannelID, message.ID, "➡️")
+		if err != nil {
+			log.Println("error while sending embed", err)
+			return
+		}
 	}
 }

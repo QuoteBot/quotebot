@@ -3,37 +3,7 @@ package pagination
 import (
 	"context"
 	"time"
-
-	"github.com/QuoteBot/quotebot/pkg/datastorage"
 )
-
-type timedState struct {
-	quotes      []datastorage.Quote
-	curPage     int
-	maxPage     int
-	lastPageLen int
-	lastSeen    time.Time
-}
-
-func fromQuotes(quotes []datastorage.Quote) *timedState {
-
-	l := len(quotes)
-	maxPage := l / pageQuotes
-	lastlen := l % pageQuotes
-	if lastlen > 0 {
-		maxPage++
-	} else {
-		lastlen = pageQuotes
-	}
-
-	return &timedState{
-		quotes:      quotes,
-		curPage:     1,
-		maxPage:     maxPage,
-		lastPageLen: lastlen,
-		lastSeen:    time.Now(),
-	}
-}
 
 const gcTickDuration = 20 * time.Second
 const timoutDuration = 2 * time.Minute
@@ -50,12 +20,12 @@ const (
 
 type action struct {
 	typeAction actionType
-	toAdd      *timedState
+	toAdd      *State
 	id         string
 }
 
 type mapPageHandler struct {
-	states     map[string]*timedState
+	states     map[string]*State
 	context    context.Context
 	actionChan chan action
 	resChan    chan *Page
@@ -65,7 +35,7 @@ func newMapPageHandler() PageHandler /*context.Context*/ {
 
 	//ctx := context.WithCancel(context.Background(), nil)
 	ph := &mapPageHandler{
-		states:     make(map[string]*timedState),
+		states:     make(map[string]*State),
 		context:    context.Background(),
 		actionChan: make(chan action),
 		resChan:    make(chan *Page),
@@ -89,14 +59,14 @@ func (pageHandler *mapPageHandler) _gc() {
 }
 
 //inject current page as res
-func (pageHandler *mapPageHandler) _add(id string, state *timedState) {
+func (pageHandler *mapPageHandler) _add(id string, state *State) {
 	_, ok := pageHandler.states[id]
 	if ok {
 		pageHandler.resChan <- nil
 		return
 	}
 	pageHandler.states[id] = state
-	res := cur(state)
+	res := state.GetCurrentPage()
 	pageHandler.resChan <- res
 }
 
@@ -115,7 +85,7 @@ func (pageHandler *mapPageHandler) _next(id string) {
 	if state.curPage > state.maxPage {
 		state.curPage--
 	}
-	res := cur(state)
+	res := state.GetCurrentPage()
 	pageHandler.resChan <- res
 }
 
@@ -129,7 +99,7 @@ func (pageHandler *mapPageHandler) _prev(id string) {
 	if state.curPage > 0 {
 		state.curPage--
 	}
-	res := cur(state)
+	res := state.GetCurrentPage()
 	pageHandler.resChan <- res
 
 }
@@ -141,25 +111,8 @@ func (pageHandler *mapPageHandler) _cur(id string) {
 		pageHandler.resChan <- nil
 		return
 	}
-	res := cur(state)
+	res := state.GetCurrentPage()
 	pageHandler.resChan <- res
-}
-
-//compute current page
-func cur(state *timedState) *Page {
-	islast := state.curPage == state.maxPage
-	isfirst := state.curPage == 1
-	startPosition := (state.curPage - 1) * pageQuotes
-	endPosition := startPosition + pageQuotes
-	if islast {
-		endPosition = startPosition + state.lastPageLen
-	}
-
-	return &Page{
-		values:  state.quotes[startPosition:endPosition],
-		hasNext: !islast,
-		hasPrev: !isfirst,
-	}
 }
 
 func (pageHandler *mapPageHandler) behavior() {
@@ -202,8 +155,7 @@ func (pageHandler *mapPageHandler) GetPreviousPage(embedID string) *Page {
 	pageHandler.actionChan <- action{id: embedID, toAdd: nil, typeAction: getPrev}
 	return <-pageHandler.resChan
 }
-func (pageHandler *mapPageHandler) Add(embedID string, quotes []datastorage.Quote) *Page {
-	state := fromQuotes(quotes)
+func (pageHandler *mapPageHandler) Add(embedID string, state *State) *Page {
 	pageHandler.actionChan <- action{id: embedID, toAdd: state, typeAction: add}
 	return <-pageHandler.resChan
 }

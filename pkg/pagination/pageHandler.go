@@ -8,9 +8,9 @@ const pageQuotes = 5
 
 //Page a page of selected quotes
 type Page struct {
-	values  []datastorage.Quote
-	hasNext bool
-	hasPrev bool
+	Values  []datastorage.Quote
+	HasNext bool
+	HasPrev bool
 }
 
 //PageHandler interface for object handling pagination
@@ -18,7 +18,7 @@ type PageHandler interface {
 	GetCurrentPage(embedID string) *Page
 	GetNextPage(embedID string) *Page
 	GetPreviousPage(embedID string) *Page
-	Add(embedID string, quotes []datastorage.Quote) *Page
+	Add(embedID string, state *State) *Page
 	Delete(embedID string)
 }
 
