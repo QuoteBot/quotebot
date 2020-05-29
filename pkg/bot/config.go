@@ -25,8 +25,10 @@ func loadConfig(path string) (*Config, error) {
 					log.Println("error while saving the default config the bot will continue, please change the path to the config file", err)
 					return conf, nil
 				}
+				log.Println("error while saving default config, config is nil, the program will crash")
 				return nil, err
 			}
+			return conf, nil
 		}
 		return nil, err
 	}
