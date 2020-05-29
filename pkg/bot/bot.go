@@ -12,13 +12,13 @@ import (
 type Bot struct {
 	Sc          chan os.Signal
 	Conf        *Config
-	Commands    *BotCommands
+	Commands    *Commands
 	QuoteStore  datastorage.QuoteStore
 	PageHandler pagination.PageHandler
 }
 
 //NewBot build a bot given a config file and a set of commands
-func NewBot(sc chan os.Signal, confFile string, commands *BotCommands) (*Bot, error) {
+func NewBot(sc chan os.Signal, confFile string, commands *Commands) (*Bot, error) {
 	conf, err := loadConfig(confFile)
 	if err != nil {
 		return nil, err

@@ -16,7 +16,7 @@ type Quote struct {
 type QuoteStore interface {
 	Save(quote *Quote) error
 	Delete(quoteID string, userID string, guildID string) error
-	//GetQuotesFromUser(userID string, guildID string) []Quote
+	GetQuotesFromUser(userID string, guildID string) (*userQuotes, error)
 	//GetAllQuotes(guildID string) []Quote
 	//FindQuotesFromUser(userID string, guildID string, search string) []Quote
 	//FindQuotes(guildID string, search string) []Quote
