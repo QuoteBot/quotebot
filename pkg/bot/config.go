@@ -10,6 +10,7 @@ import (
 type Config struct {
 	OwnersID []string `json:"ownersid"`
 	DataPath string   `json:"datapath"`
+	Prefix   string   `json:"prefix"`
 }
 
 type fileNotFound error
