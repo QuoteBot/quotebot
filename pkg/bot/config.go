@@ -10,6 +10,7 @@ import (
 type Config struct {
 	OwnersID []string `json:"ownersid"`
 	DataPath string   `json:"datapath"`
+	Prefix   string   `json:"prefix"`
 }
 
 type fileNotFound error
@@ -51,6 +52,8 @@ func extract(path string) (*Config, error) {
 func saveDefaultConfig(path string, defaultConfig map[string]string) (*Config, error) {
 	defaultConf := &Config{
 		OwnersID: []string{},
+		DataPath: "data",
+		Prefix: "\"",
 	}
 
 	if data, ok := defaultConfig["DataPath"]; ok {
