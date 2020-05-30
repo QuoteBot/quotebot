@@ -4,7 +4,8 @@ outputdir=bin/
 
 function buildRelease() {
     echo build linux amd64
-    GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o bin/ .
+    # CGO_ENABLED="0" for interoperability between distrib
+    CGO_ENABLED="0" GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o bin/ .
 }
 
 function buildForDebug {
