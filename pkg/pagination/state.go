@@ -30,7 +30,7 @@ func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *dis
 
 	return &State{
 		quotes:      quotes,
-		curPage:     1,
+		curPage:     0,
 		maxPage:     maxPage,
 		lastPageLen: lastlen,
 		lastSeen:    time.Now(),
