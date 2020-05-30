@@ -12,6 +12,7 @@ import (
 type savableQuote struct {
 	Timestamp time.Time `json:"timestamp"`
 	Content   string    `json:"content"`
+	Score     int       `json:"score"`
 }
 
 type userQuotes struct {
@@ -188,7 +189,7 @@ func (qs *fileQuoteStore) Delete(quoteID string, userID string, guildID string) 
 	return qs.saveUserQuotes(userQuotes)
 }
 
-func (qs *fileQuoteStore) GetQuotesFromUser(userID string, guildID string) (*userQuotes, error) {
+func (qs *fileQuoteStore) GetQuotesFromUser(userID string, guildID string) ([]Quote, error) {
 	mutex := qs.aquireRead(guildID)
 	defer mutex.RUnlock()
 
@@ -197,5 +198,19 @@ func (qs *fileQuoteStore) GetQuotesFromUser(userID string, guildID string) (*use
 		return nil, err
 	}
 
-	return userQuotes, nil
+	res := make([]Quote, len(userQuotes.Quotes))
+	index := 0
+	for id, quote := range userQuotes.Quotes {
+		res[index] = Quote{
+			QuoteId:   id,
+			UserID:    userQuotes.UserID,
+			GuildID:   userQuotes.GuildID,
+			Timestamp: quote.Timestamp,
+			Score:     quote.Score,
+			Content:   quote.Content,
+		}
+		index++
+	}
+
+	return res, nil
 }

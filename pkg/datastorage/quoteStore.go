@@ -10,12 +10,13 @@ type Quote struct {
 	GuildID   string    `json:"guildId"`
 	Timestamp time.Time `json:"timestamp"`
 	Content   string    `json:"content"`
+	Score     int       `json:"score"`
 }
 
 type QuoteStore interface {
 	Save(quote *Quote) error
 	Delete(quoteID string, userID string, guildID string) error
-	GetQuotesFromUser(userID string, guildID string) (*userQuotes, error)
+	GetQuotesFromUser(userID string, guildID string) ([]Quote, error)
 	//GetAllQuotes(guildID string) []Quote
 	//FindQuotesFromUser(userID string, guildID string, search string) []Quote
 	//FindQuotes(guildID string, search string) []Quote
