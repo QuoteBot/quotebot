@@ -51,6 +51,7 @@ func saveDefaultConfig(path string) (*Config, error) {
 	defaultConf := &Config{
 		OwnersID: []string{},
 		DataPath: "data",
+		Prefix: "\"",
 	}
 
 	//try to save
