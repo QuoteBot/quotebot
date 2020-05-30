@@ -16,8 +16,8 @@ type Page struct {
 	Mentioned *discordgo.User
 }
 
-//PageHandler interface for object handling pagination
-type PageHandler interface {
+//PageManager interface for object handling pagination
+type PageManager interface {
 	GetCurrentPage(embedID string) (*Page, error)
 	GetNextPage(embedID string) (*Page, error)
 	GetPreviousPage(embedID string) (*Page, error)
@@ -25,7 +25,7 @@ type PageHandler interface {
 	Delete(embedID string)
 }
 
-//NewPageHandler instantiate an object implementing the PageHandler interface
-func NewPageHandler() PageHandler {
-	return newMapPageHandler()
+//NewPageManager instantiate an object implementing the PageManager interface
+func NewPageManager() PageManager {
+	return newMapPageManager()
 }

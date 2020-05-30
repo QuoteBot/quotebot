@@ -14,7 +14,7 @@ type Bot struct {
 	Conf        *Config
 	Commands    *Commands
 	QuoteStore  datastorage.QuoteStore
-	PageHandler pagination.PageHandler
+	PageManager pagination.PageManager
 }
 
 //NewBot build a bot given a config file and a set of commands
@@ -35,6 +35,6 @@ func NewBot(sc chan os.Signal, confFile string, commands *Commands) (*Bot, error
 		Conf:        conf,
 		QuoteStore:  store,
 		Commands:    commands,
-		PageHandler: pagination.NewPageHandler(),
+		PageManager: pagination.NewPageManager(),
 	}, nil
 }

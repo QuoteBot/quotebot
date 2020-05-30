@@ -73,7 +73,7 @@ func saveQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd
 }
 
 func nextPage(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd) {
-	page, err := b.PageHandler.GetNextPage(m.MessageID)
+	page, err := b.PageManager.GetNextPage(m.MessageID)
 	if err != nil {
 		//Maybe log not found for statistics
 		return
@@ -88,7 +88,7 @@ func nextPage(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd)
 }
 
 func prevPage(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd) {
-	page, err := b.PageHandler.GetPreviousPage(m.MessageID)
+	page, err := b.PageManager.GetPreviousPage(m.MessageID)
 	if err != nil {
 		//Maybe log not found for statistics
 		return
@@ -103,7 +103,7 @@ func prevPage(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd)
 }
 
 func selectQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd) {
-	page, err := b.PageHandler.GetCurrentPage(m.MessageID)
+	page, err := b.PageManager.GetCurrentPage(m.MessageID)
 	if err != nil {
 		return
 	}
@@ -124,5 +124,5 @@ func selectQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionA
 	}
 
 	//when it's done delete the state from page handler
-	b.PageHandler.Delete(m.MessageID)
+	b.PageManager.Delete(m.MessageID)
 }

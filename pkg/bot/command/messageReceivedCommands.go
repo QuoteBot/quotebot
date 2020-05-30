@@ -68,7 +68,7 @@ func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	//register the state into the page manager
-	b.PageHandler.Add(message.ID, state)
+	b.PageManager.Add(message.ID, state)
 
 	//then when it's aviable react to the message
 	utils.ReactToPage(page, s, m.ChannelID, message.ID, emojiToReact())
