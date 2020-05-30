@@ -18,6 +18,7 @@ import (
 func main() {
 	tokenFile := flag.String("token", "token", "path to the token file")
 	configFile := flag.String("config", "config.json", "path to the config file (json)")
+	dataPath := flag.String("dataPath", "data", "use in default config fallback")
 
 	flag.Parse()
 
@@ -26,11 +27,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	startBot(token, *configFile)
+	defaultConfig := map[string]string{}
+	defaultConfig["DataPath"] = *dataPath
+	startBot(token, *configFile, defaultConfig)
 
 }
 
-func startBot(token string, conf string) {
+func startBot(token string, conf string, defaultConfig map[string]string) {
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
@@ -40,7 +43,7 @@ func startBot(token string, conf string) {
 	// declare the shutdown channel
 	sc := make(chan os.Signal)
 
-	b, err := bot.NewBot(sc, conf, command.AllBotCommands())
+	b, err := bot.NewBot(sc, conf, command.AllBotCommands(), defaultConfig)
 	if err != nil {
 		log.Fatal("error creating bot: ", err)
 	}

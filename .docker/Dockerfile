@@ -6,4 +6,4 @@ VOLUME [ "/data" ]
 COPY  ./bin/quotebot  .
 RUN ls -lha
 
-ENTRYPOINT [ "./quotebot", "-config", "/data/config.json", "-token", "/data/token"]
+ENTRYPOINT [ "./quotebot", "-config", "/data/config.json", "-token", "/data/token", "-dataPath", "/data/store"]

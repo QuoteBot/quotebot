@@ -14,12 +14,12 @@ type Config struct {
 
 type fileNotFound error
 
-func loadConfig(path string) (*Config, error) {
+func loadConfig(path string, defaultConfig map[string]string) (*Config, error) {
 	conf, err := extract(path)
 	if err != nil {
 		if e, ok := err.(fileNotFound); ok {
 			log.Println(e, "recover by creating default config to", path)
-			conf, err = saveDefaultConfig(path)
+			conf, err = saveDefaultConfig(path, defaultConfig)
 			if err != nil {
 				if conf != nil {
 					log.Println("error while saving the default config the bot will continue, please change the path to the config file", err)
@@ -46,10 +46,13 @@ func extract(path string) (*Config, error) {
 	return &conf, nil
 }
 
-func saveDefaultConfig(path string) (*Config, error) {
+func saveDefaultConfig(path string, defaultConfig map[string]string) (*Config, error) {
 	defaultConf := &Config{
 		OwnersID: []string{},
-		DataPath: "data",
+	}
+
+	if data, ok := defaultConfig["DataPath"]; ok {
+		defaultConf.DataPath = data
 	}
 
 	//try to save
