@@ -42,8 +42,8 @@ func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *dis
 //compute current page
 func (state *State) GetCurrentPage() *Page {
 	islast := state.curPage == state.maxPage
-	isfirst := state.curPage == 1
-	startPosition := (state.curPage - 1) * pageQuotes
+	isfirst := state.curPage == 0
+	startPosition := (state.curPage) * pageQuotes
 	endPosition := startPosition + pageQuotes
 	if islast {
 		endPosition = startPosition + state.lastPageLen
