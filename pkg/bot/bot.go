@@ -15,8 +15,8 @@ type Bot struct {
 }
 
 //NewBot build a bot given a config file and a set of commands
-func NewBot(sc chan os.Signal, confFile string, commands *Commands) (*Bot, error) {
-	conf, err := loadConfig(confFile)
+func NewBot(sc chan os.Signal, confFile string, commands *Commands, defaultConfig map[string]string) (*Bot, error) {
+	conf, err := loadConfig(confFile, defaultConfig)
 	if err != nil {
 		return nil, err
 	}
