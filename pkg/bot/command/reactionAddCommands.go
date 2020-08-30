@@ -43,14 +43,11 @@ func saveQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd
 		return
 	}
 
-	count := 0
+	score := 0
 	for _, r := range message.Reactions {
 
 		if r.Emoji.Name == "💾" {
-			count++
-		}
-		if count >= 2 {
-			return
+			score++
 		}
 	}
 
@@ -65,6 +62,7 @@ func saveQuote(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd
 		UserID:    message.Author.ID,
 		Timestamp: timestamp,
 		Content:   message.Content,
+		Score:     score,
 	}
 	if b.QuoteStore.Save(&quote) != nil {
 		log.Println("error while saving quote", err)

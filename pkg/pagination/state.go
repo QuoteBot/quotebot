@@ -1,6 +1,7 @@
 package pagination
 
 import (
+	"sort"
 	"time"
 
 	"github.com/QuoteBot/quotebot/pkg/datastorage"
@@ -17,8 +18,19 @@ type State struct {
 	mentioned   *discordgo.User
 }
 
+//NewState build a new state
+//
 func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *discordgo.User) *State {
 
+	//sort quotes by score
+	sortedQuotes := quotes[:]
+	sort.Slice(sortedQuotes, func(i, j int) bool {
+		if sortedQuotes[i].Score == sortedQuotes[j].Score {
+			return sortedQuotes[i].Timestamp.Before(sortedQuotes[j].Timestamp)
+		}
+		return sortedQuotes[i].Score > sortedQuotes[j].Score
+	})
+	//define the number of pages and the size of the last page
 	l := len(quotes)
 	maxPage := l / pageQuotes
 	lastlen := l % pageQuotes
@@ -29,7 +41,7 @@ func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *dis
 	}
 
 	return &State{
-		quotes:      quotes,
+		quotes:      sortedQuotes,
 		curPage:     0,
 		maxPage:     maxPage,
 		lastPageLen: lastlen,
@@ -39,16 +51,15 @@ func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *dis
 	}
 }
 
-//compute current page
+//GetCurrentPage compute current page
 func (state *State) GetCurrentPage() *Page {
-	islast := state.curPage == state.maxPage
+	islast := state.curPage == state.maxPage-1
 	isfirst := state.curPage == 0
 	startPosition := (state.curPage) * pageQuotes
 	endPosition := startPosition + pageQuotes
 	if islast {
 		endPosition = startPosition + state.lastPageLen
 	}
-
 	state.lastSeen = time.Now()
 
 	return &Page{
