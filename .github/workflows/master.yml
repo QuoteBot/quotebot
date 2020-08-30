@@ -26,7 +26,7 @@ jobs:
       uses: actions/setup-go@v2.0.3
       with:
         # The Go version to download
-        go-version: 1.14
+        go-version: 1.15
         
         
     - name: prepare output directory
@@ -35,9 +35,9 @@ jobs:
     - name: build
       run: |
         echo build for linux/amd64
-        GOOS=linux GOARCH=amd64 go build -o bin/quotebot . 
+        CGO_ENABLED="0" GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o bin/quotebot . 
         echo build for linux/arm
-        GOOS=linux GOARCH=arm go build -o bin/quotebot_arm .
+        CGO_ENABLED="0" GOOS=linux GOARCH=arm go build -trimpath -ldflags="-s -w" -o bin/quotebot_arm .
         echo build for windows/amd64
-        GOOS=windows GOARCH=amd64 go build -o bin/quotebot.exe .
+        CGO_ENABLED="0" GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o bin/quotebot.exe .
         
