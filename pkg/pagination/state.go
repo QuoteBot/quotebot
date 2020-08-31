@@ -19,7 +19,6 @@ type State struct {
 }
 
 //NewState build a new state
-//
 func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *discordgo.User) *State {
 
 	//sort quotes by score
