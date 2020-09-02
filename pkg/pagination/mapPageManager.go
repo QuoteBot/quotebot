@@ -1,13 +1,15 @@
 package pagination
 
 import (
+	"github.com/bwmarrin/discordgo"
+
 	"context"
 	"errors"
 	"time"
 )
 
 const gcTickDuration = 20 * time.Second
-const timoutDuration = 2 * time.Minute
+const timeoutDuration = 2 * time.Minute
 
 type actionType int
 
@@ -30,17 +32,20 @@ type res struct {
 	err  error
 }
 
+
 type mapPageManager struct {
+	session    discordgo.Session
 	states     map[string]*State
 	context    context.Context
 	actionChan chan action
 	resChan    chan *res
 }
 
-func newMapPageManager() PageManager /*context.Context*/ {
+func newMapPageManager(dgs *discordgo.Session) PageManager /*context.Context*/ {
 
 	//ctx := context.WithCancel(context.Background(), nil)
 	ph := &mapPageManager{
+		session:    *dgs,
 		states:     make(map[string]*State),
 		context:    context.Background(),
 		actionChan: make(chan action),
@@ -55,11 +60,14 @@ func (PageManager *mapPageManager) _gc() {
 	toDel := make([]string, 0, len(PageManager.states))
 	now := time.Now()
 	for id, s := range PageManager.states {
-		if s.lastSeen.Add(timoutDuration).Before(now) {
+		if s.lastSeen.Add(timeoutDuration).Before(now) {
 			toDel = append(toDel, id)
 		}
 	}
 	for _, id := range toDel {
+		// notify discord to delete embed
+		chID := PageManager.states[id].channelID
+		PageManager.session.ChannelMessageDelete(chID, id)
 		delete(PageManager.states, id)
 	}
 }
