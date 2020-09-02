@@ -26,6 +26,6 @@ type PageManager interface {
 }
 
 //NewPageManager instantiate an object implementing the PageManager interface
-func NewPageManager() PageManager {
-	return newMapPageManager()
+func NewPageManager(dgs *discordgo.Session) PageManager {
+	return newMapPageManager(dgs)
 }
