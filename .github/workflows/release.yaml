@@ -40,11 +40,17 @@ jobs:
         
     - name : Shrink binaries
       run: upx -9 bin/quotebot*
-        
+
+    - name : create md5 sum
+      run : |
+        cd bin
+        md5sum * > binaries_hash.md5
+        md5sum -c binaries_hash.md5
+            
     - name : Upload artifacts
       uses : skx/github-action-publish-binaries@master
       env:
         #handled by github
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        args: 'bin/quotebot*'
+        args: 'bin/*'
