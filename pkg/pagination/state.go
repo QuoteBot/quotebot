@@ -16,10 +16,11 @@ type State struct {
 	lastSeen    time.Time
 	author      *discordgo.User
 	mentioned   *discordgo.User
+	channelID   string
 }
 
 //NewState build a new state
-func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *discordgo.User) *State {
+func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *discordgo.User, chID string) *State {
 
 	//sort quotes by score
 	sortedQuotes := quotes[:]
@@ -32,21 +33,22 @@ func NewState(quotes []datastorage.Quote, author *discordgo.User, mentioned *dis
 	//define the number of pages and the size of the last page
 	l := len(quotes)
 	maxPage := l / pageQuotes
-	lastlen := l % pageQuotes
-	if lastlen > 0 {
+	lastLen := l % pageQuotes
+	if lastLen > 0 {
 		maxPage++
 	} else {
-		lastlen = pageQuotes
+		lastLen = pageQuotes
 	}
 
 	return &State{
 		quotes:      sortedQuotes,
 		curPage:     0,
 		maxPage:     maxPage,
-		lastPageLen: lastlen,
+		lastPageLen: lastLen,
 		lastSeen:    time.Now(),
 		author:      author,
 		mentioned:   mentioned,
+		channelID:   chID,
 	}
 }
 

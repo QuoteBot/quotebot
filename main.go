@@ -43,7 +43,7 @@ func startBot(token string, conf string, defaultConfig map[string]string) {
 	// declare the shutdown channel
 	sc := make(chan os.Signal)
 
-	b, err := bot.NewBot(sc, conf, command.AllBotCommands(), defaultConfig)
+	b, err := bot.NewBot(sc, conf, dg, command.AllBotCommands(), defaultConfig)
 	if err != nil {
 		log.Fatal("error creating bot: ", err)
 	}

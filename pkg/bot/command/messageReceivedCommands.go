@@ -57,7 +57,7 @@ func quotebook(b *bot.Bot, s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	//transform quotes in state
-	state := pagination.NewState(quotes, m.Author, mentionedUser)
+	state := pagination.NewState(quotes, m.Author, mentionedUser, m.ChannelID)
 	//get the page
 	page := state.GetCurrentPage()
 

@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"github.com/bwmarrin/discordgo"
 	"os"
 
 	"github.com/QuoteBot/quotebot/pkg/pagination"
@@ -15,10 +16,11 @@ type Bot struct {
 	Commands    *Commands
 	QuoteStore  datastorage.QuoteStore
 	PageManager pagination.PageManager
+	session     discordgo.Session
 }
 
 //NewBot build a bot given a config file and a set of commands
-func NewBot(sc chan os.Signal, confFile string, commands *Commands, defaultConfig map[string]string) (*Bot, error) {
+func NewBot(sc chan os.Signal, confFile string, dgs *discordgo.Session, commands *Commands, defaultConfig map[string]string) (*Bot, error) {
 	conf, err := loadConfig(confFile, defaultConfig)
 	if err != nil {
 		return nil, err
@@ -35,6 +37,7 @@ func NewBot(sc chan os.Signal, confFile string, commands *Commands, defaultConfi
 		Conf:        conf,
 		QuoteStore:  store,
 		Commands:    commands,
-		PageManager: pagination.NewPageManager(),
+		PageManager: pagination.NewPageManager(dgs),
+		session:     *dgs,
 	}, nil
 }
