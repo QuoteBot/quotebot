@@ -117,12 +117,12 @@ func (qs *fileQuoteStore) aquireWrite(guildID string) *sync.RWMutex {
 	}
 }
 
-func (qs *fileQuoteStore) aquireRead(guildID string) *sync.RWMutex {
+func (qs *fileQuoteStore) aquireRead(guildID string) (*sync.RWMutex, error) {
 	if mutex, ok := qs.guildMutexes[guildID]; ok {
 		mutex.RLock()
-		return &mutex
+		return &mutex, nil
 	}
-	return nil
+	return nil, errors.New("mutex not found")
 }
 
 func (qs *fileQuoteStore) getUserQuotes(userID string, guildID string) (*userQuotes, error) {
@@ -190,7 +190,10 @@ func (qs *fileQuoteStore) Delete(quoteID string, userID string, guildID string) 
 }
 
 func (qs *fileQuoteStore) GetQuotesFromUser(userID string, guildID string) ([]Quote, error) {
-	mutex := qs.aquireRead(guildID)
+	mutex, err := qs.aquireRead(guildID)
+	if err != nil {
+		return nil, err
+	}
 	defer mutex.RUnlock()
 
 	userQuotes, err := qs.getUserQuotes(userID, guildID)
