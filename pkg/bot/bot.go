@@ -1,8 +1,9 @@
 package bot
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"os"
+
+	"github.com/bwmarrin/discordgo"
 
 	"github.com/QuoteBot/quotebot/pkg/pagination"
 
