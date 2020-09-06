@@ -12,7 +12,12 @@ type Commands struct {
 }
 
 //MessageCommand Commands triggers by message
-type MessageCommand func(b *Bot, s *discordgo.Session, m *discordgo.MessageCreate)
+//type MessageCommand func(b *Bot, s *discordgo.Session, m *discordgo.MessageCreate)
+type MessageCommand interface {
+	Check(b *Bot, s *discordgo.Session, m *discordgo.MessageCreate) bool
+	Action(b *Bot, s *discordgo.Session, m *discordgo.MessageCreate) error
+	Help() string
+}
 
 //ReactionAddCommand Commands triggers by new reaction
 type ReactionAddCommand func(b *Bot, s *discordgo.Session, m *discordgo.MessageReactionAdd)
